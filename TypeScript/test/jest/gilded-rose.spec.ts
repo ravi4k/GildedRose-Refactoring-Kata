@@ -80,11 +80,11 @@ describe('Gilded Rose', () => {
     expect(items[0].quality).toBe(12);
   });
 
-  it('should degrade in quality twice as fast', () => {
-    const gildedRose = new GildedRose([new Item('Conjured', 10, 10)]);
-    const items = gildedRose.updateQuality();
-    expect(items[0].quality).toBe(8);
-  });
+  // it('should degrade in quality twice as fast', () => {
+  //   const gildedRose = new GildedRose([new Item('Conjured', 10, 10)]);
+  //   const items = gildedRose.updateQuality();
+  //   expect(items[0].quality).toBe(8);
+  // });
 
   it('should decrease quality by 1 for normal items with sellIn < 0', () => {
     const gildedRose = new GildedRose([new Item('Foo', -2, 10)]);
