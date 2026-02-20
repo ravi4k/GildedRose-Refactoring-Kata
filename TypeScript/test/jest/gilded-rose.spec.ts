@@ -92,4 +92,10 @@ describe('Gilded Rose', () => {
     expect(items[0].quality).toBe(8);
     expect(items[0].sellIn).toBe(-3);
   });
+
+  it('should not increase quality for Sulfuras when quality is less than 50', () => {
+    const gildedRose = new GildedRose([new Item('Sulfuras, Hand of Ragnaros', 10, 49)]);
+    const items = gildedRose.updateQuality();
+    expect(items[0].quality).toBe(49);
+  })
 });

@@ -40,37 +40,45 @@ export class GildedRose {
   }
 
   private changeQuality(item: Item) {
-    if (!Object.values(ItemType).includes(item.name as ItemType)) {
-      this.handleGenericItem(item)
-    } else {
-      if (item.quality < 50 && item.name != ItemType.CONJURED) {
-        item.changeQuality(ItemOperation.Increment, 1);
-        if (item.name == ItemType.BACKSTAGE) {
-          if (item.sellIn < 11) {
-            if (item.quality < 50) {
-              item.changeQuality(ItemOperation.Increment, 1);
-            }
-          }
-          if (item.sellIn < 6 && item.quality < 50) {
-            item.changeQuality(ItemOperation.Increment, 1);
-          }
-        }
-      }
+    if (item.name == ItemType.SULFURAS) {
+      item.quality < 50 && item.changeQuality(ItemOperation.Increment, 0);
+      return;
     }
 
-    if (item.sellIn < 0) {
-      if (item.name != ItemType.AGED_BRIE) {
-        if (item.name == ItemType.BACKSTAGE) {
-          item.quality = 0
-        }
-      } else if (item.quality < 50) {
-        item.changeQuality(ItemOperation.Increment, 1);
+    if (item.name == ItemType.BACKSTAGE) {
+      if (item.quality < 50) {
+        const limit = 50 - item.quality;
+
+        let increaseQualityBy = 1;
+        if (item.sellIn < 11) increaseQualityBy++;
+        if (item.sellIn < 6) increaseQualityBy++;
+        increaseQualityBy = Math.min(increaseQualityBy, limit);
+
+        item.changeQuality(ItemOperation.Increment, increaseQualityBy);
       }
+
+      if (item.sellIn < 0) {
+        item.quality = 0;
+      }
+      return;
+    }
+
+    if (item.name == ItemType.AGED_BRIE) {
+      if (item.quality < 50) {
+        item.changeQuality(ItemOperation.Increment, 1);
+        if (item.sellIn < 0) {
+          item.changeQuality(ItemOperation.Increment, 1);
+        }
+      }
+      return;
     }
 
     if (item.name === ItemType.CONJURED) {
       item.changeQuality(ItemOperation.Decrement, 2);
+      return;
     }
+
+    this.handleGenericItem(item)
   }
 
   private changeSellIn(item: Item) {
