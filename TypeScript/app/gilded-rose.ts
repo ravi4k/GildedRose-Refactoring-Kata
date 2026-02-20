@@ -2,6 +2,12 @@ enum ItemType {
   BACKSTAGE = 'Backstage passes to a TAFKAL80ETC concert',
   AGED_BRIE = 'Aged Brie',
   SULFURAS = 'Sulfuras, Hand of Ragnaros',
+  CONJURED = 'Conjured',
+}
+
+export enum ItemOperation {
+  Increment,
+  Decrement,
 }
 
 export class Item {
@@ -14,6 +20,16 @@ export class Item {
     this.sellIn = sellIn;
     this.quality = quality;
   }
+
+  changeQuality(operation: ItemOperation, value: number) {
+    if (operation === ItemOperation.Decrement) value = -value;
+    this.quality = Math.max(0, this.quality + value);
+  }
+
+  changeSellIn(operation: ItemOperation, value: number) {
+    if (operation === ItemOperation.Decrement) value = -value;
+    this.sellIn = this.sellIn + value
+  }
 }
 
 export class GildedRose {
@@ -23,56 +39,57 @@ export class GildedRose {
     this.items = items;
   }
 
+  private changeQuality(item: Item) {
+    if (!Object.values(ItemType).includes(item.name as ItemType)) {
+      this.handleGenericItem(item)
+    } else {
+      if (item.quality < 50 && item.name != ItemType.CONJURED) {
+        item.changeQuality(ItemOperation.Increment, 1);
+        if (item.name == ItemType.BACKSTAGE) {
+          if (item.sellIn < 11) {
+            if (item.quality < 50) {
+              item.changeQuality(ItemOperation.Increment, 1);
+            }
+          }
+          if (item.sellIn < 6 && item.quality < 50) {
+            item.changeQuality(ItemOperation.Increment, 1);
+          }
+        }
+      }
+    }
+
+    if (item.sellIn < 0) {
+      if (item.name != ItemType.AGED_BRIE) {
+        if (item.name == ItemType.BACKSTAGE) {
+          item.quality = 0
+        }
+      } else if (item.quality < 50) {
+        item.changeQuality(ItemOperation.Increment, 1);
+      }
+    }
+
+    if (item.name === ItemType.CONJURED) {
+      item.changeQuality(ItemOperation.Decrement, 2);
+    }
+  }
+
+  private changeSellIn(item: Item) {
+    if (item.name != ItemType.SULFURAS) {
+      item.changeSellIn(ItemOperation.Decrement, 1);
+    }
+  }
+
   updateQuality() {
     for (let i = 0; i < this.items.length; i++) {
-      if (!Object.values(ItemType).includes(this.items[i].name as ItemType)) {
-        this.handleGenericItem(this.items[i])
-        continue;
-      }
-
-      if (this.items[i].name != ItemType.AGED_BRIE && this.items[i].name != ItemType.BACKSTAGE) {
-        if (this.items[i].quality > 0 && this.items[i].name != ItemType.SULFURAS) {
-            this.items[i].quality = this.items[i].quality - 1
-        }
-      } else {
-        if (this.items[i].quality < 50) {
-          this.items[i].quality = this.items[i].quality + 1
-          if (this.items[i].name == ItemType.BACKSTAGE) {
-            if (this.items[i].sellIn < 11) {
-              if (this.items[i].quality < 50) {
-                this.items[i].quality = this.items[i].quality + 1
-              }
-            }
-            if (this.items[i].sellIn < 6 && this.items[i].quality < 50) {
-                this.items[i].quality = this.items[i].quality + 1
-            }
-          }
-        }
-      }
-      if (this.items[i].name != ItemType.SULFURAS) {
-        this.items[i].sellIn = this.items[i].sellIn - 1;
-      }
-      if (this.items[i].sellIn < 0) {
-        if (this.items[i].name != ItemType.AGED_BRIE) {
-          if (this.items[i].name != ItemType.BACKSTAGE) {
-            if (this.items[i].quality > 0 && this.items[i].name != ItemType.SULFURAS) {
-              this.items[i].quality = this.items[i].quality - 1
-            }
-          } else {
-            this.items[i].quality = 0
-          }
-        } else if (this.items[i].quality < 50) {
-            this.items[i].quality = this.items[i].quality + 1
-          }
-        }
-      }
+      this.changeSellIn(this.items[i]);
+      this.changeQuality(this.items[i]);
+    }
 
     return this.items;
   }
 
   private handleGenericItem(item: Item) {
     const decreaseQualityBy = item.sellIn <= 0 ? 2 : 1
-    item.quality = Math.max(0, item.quality - decreaseQualityBy)
-    item.sellIn = item.sellIn - 1
+    item.changeQuality(ItemOperation.Decrement, decreaseQualityBy);
   }
 }
